@@ -52,10 +52,14 @@ dependencies {
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
   
-  // AndroidLiquidGlass 라이브러리
-  // TODO: 실제 라이브러리 의존성을 추가하세요
-  // 예시:
-  // implementation 'com.github.Kyant0:AndroidLiquidGlass:1.0.0'
-  // 또는 로컬 모듈인 경우:
-  // implementation project(':androidliquidglass')
+  // Compose BOM (버전 관리)
+  def composeBomVersion = '2024.02.00'
+  implementation platform("androidx.compose:compose-bom:$composeBomVersion")
+  implementation 'androidx.compose.ui:ui'
+  implementation 'androidx.compose.ui:ui-graphics'
+  implementation 'androidx.compose.foundation:foundation'
+  implementation 'androidx.compose.runtime:runtime'
+  
+  // Backdrop 라이브러리
+  implementation("io.github.kyant0:backdrop:0.7.0")
 }

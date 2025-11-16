@@ -2,9 +2,9 @@ export interface LiquidGlassOptions {
     blurRadius?: number;
     saturation?: number;
     brightness?: number;
-    noise?: number;
-    turbulence?: number;
-    distortion?: number;
+    lensRadius?: number;
+    lensIntensity?: number;
+    surfaceAlpha?: number;
 }
 declare class LiquidGlassModule {
     /**

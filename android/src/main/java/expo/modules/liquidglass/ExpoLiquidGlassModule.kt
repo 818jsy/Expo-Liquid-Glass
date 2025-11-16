@@ -1,23 +1,41 @@
 package expo.modules.liquidglass
 
-import android.view.View
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.UIManagerModule
-// TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 import의 주석을 해제하세요
-// import com.kyant.liquidglass.LiquidGlass
+import io.github.kyant0.backdrop.drawBackdrop
+import io.github.kyant0.backdrop.lens
+import io.github.kyant0.backdrop.rememberLayerBackdrop
+import io.github.kyant0.backdrop.vibrancy
+import io.github.kyant0.backdrop.blur
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+data class LiquidGlassOptions(
+    val blurRadius: Float = 16f,
+    val saturation: Float = 1.0f,
+    val brightness: Float = 1.0f,
+    val lensRadius: Float = 16f,
+    val lensIntensity: Float = 32f,
+    val surfaceAlpha: Float = 0.3f
+)
+
 class ExpoLiquidGlassModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
-    // TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 타입의 주석을 해제하세요
-    // private val liquidGlassInstances = mutableMapOf<Int, LiquidGlass>()
+    private val liquidGlassOverlays = mutableMapOf<Int, ComposeView>()
+    private val liquidGlassOptions = mutableMapOf<Int, LiquidGlassOptions>()
 
     override fun getName(): String {
         return "ExpoLiquidGlass"
@@ -25,9 +43,6 @@ class ExpoLiquidGlassModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun applyEffect(viewTag: Int, options: ReadableMap?, promise: Promise) {
-        promise.reject("NOT_IMPLEMENTED", "AndroidLiquidGlass 라이브러리를 먼저 추가해주세요. android/build.gradle 파일을 확인하세요.")
-        
-        /* TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 코드의 주석을 해제하세요
         try {
             val uiManager = reactApplicationContext.getNativeModule(UIManagerModule::class.java)
             uiManager?.addUIBlock { nativeViewHierarchyManager ->
@@ -37,33 +52,39 @@ class ExpoLiquidGlassModule(reactContext: ReactApplicationContext) :
                     return@addUIBlock
                 }
 
+                if (view !is ViewGroup) {
+                    promise.reject("INVALID_VIEW", "View must be a ViewGroup to apply LiquidGlass effect")
+                    return@addUIBlock
+                }
+
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        val liquidGlass = LiquidGlass(view)
+                        // 옵션 파싱
+                        val opts = parseOptions(options)
+                        liquidGlassOptions[viewTag] = opts
+
+                        // 기존 오버레이 제거
+                        liquidGlassOverlays[viewTag]?.let { overlay ->
+                            view.removeView(overlay)
+                        }
+
+                        // ComposeView 오버레이 생성
+                        val activity = reactContext.currentActivity
+                        if (activity == null) {
+                            promise.reject("NO_ACTIVITY", "Current activity is null")
+                            return@launch
+                        }
                         
-                        // 옵션 적용
-                        options?.let { opts ->
-                            if (opts.hasKey("blurRadius")) {
-                                liquidGlass.blurRadius = opts.getDouble("blurRadius").toFloat()
-                            }
-                            if (opts.hasKey("saturation")) {
-                                liquidGlass.saturation = opts.getDouble("saturation").toFloat()
-                            }
-                            if (opts.hasKey("brightness")) {
-                                liquidGlass.brightness = opts.getDouble("brightness").toFloat()
-                            }
-                            if (opts.hasKey("noise")) {
-                                liquidGlass.noise = opts.getDouble("noise").toFloat()
-                            }
-                            if (opts.hasKey("turbulence")) {
-                                liquidGlass.turbulence = opts.getDouble("turbulence").toFloat()
-                            }
-                            if (opts.hasKey("distortion")) {
-                                liquidGlass.distortion = opts.getDouble("distortion").toFloat()
+                        val composeView = ComposeView(activity).apply {
+                            setContent {
+                                LiquidGlassOverlay(opts)
                             }
                         }
 
-                        liquidGlassInstances[viewTag] = liquidGlass
+                        // 오버레이를 View 위에 추가
+                        view.addView(composeView)
+                        liquidGlassOverlays[viewTag] = composeView
+
                         promise.resolve(null)
                     } catch (e: Exception) {
                         promise.reject("APPLY_ERROR", "Failed to apply LiquidGlass effect: ${e.message}", e)
@@ -73,82 +94,103 @@ class ExpoLiquidGlassModule(reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             promise.reject("ERROR", "Error applying LiquidGlass effect: ${e.message}", e)
         }
-        */
     }
 
     @ReactMethod
     fun removeEffect(viewTag: Int, promise: Promise) {
-        promise.reject("NOT_IMPLEMENTED", "AndroidLiquidGlass 라이브러리를 먼저 추가해주세요.")
-        
-        /* TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 코드의 주석을 해제하세요
         try {
-            val liquidGlass = liquidGlassInstances.remove(viewTag)
-            if (liquidGlass != null) {
+            val uiManager = reactApplicationContext.getNativeModule(UIManagerModule::class.java)
+            uiManager?.addUIBlock { nativeViewHierarchyManager ->
+                val view = nativeViewHierarchyManager.resolveView(viewTag)
+                
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        liquidGlass.release()
+                        liquidGlassOverlays[viewTag]?.let { overlay ->
+                            if (view is ViewGroup) {
+                                view.removeView(overlay)
+                            }
+                        }
+                        liquidGlassOverlays.remove(viewTag)
+                        liquidGlassOptions.remove(viewTag)
                         promise.resolve(null)
                     } catch (e: Exception) {
                         promise.reject("REMOVE_ERROR", "Failed to remove LiquidGlass effect: ${e.message}", e)
                     }
                 }
-            } else {
-                promise.resolve(null)
             }
         } catch (e: Exception) {
             promise.reject("ERROR", "Error removing LiquidGlass effect: ${e.message}", e)
         }
-        */
     }
 
     @ReactMethod
     fun updateEffect(viewTag: Int, options: ReadableMap, promise: Promise) {
-        promise.reject("NOT_IMPLEMENTED", "AndroidLiquidGlass 라이브러리를 먼저 추가해주세요.")
-        
-        /* TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 코드의 주석을 해제하세요
         try {
-            val liquidGlass = liquidGlassInstances[viewTag]
-            if (liquidGlass == null) {
+            if (!liquidGlassOverlays.containsKey(viewTag)) {
                 promise.reject("NOT_FOUND", "LiquidGlass effect not found for view tag $viewTag")
                 return
             }
 
-            CoroutineScope(Dispatchers.Main).launch {
-                try {
-                    if (options.hasKey("blurRadius")) {
-                        liquidGlass.blurRadius = options.getDouble("blurRadius").toFloat()
+            val opts = parseOptions(options)
+            liquidGlassOptions[viewTag] = opts
+
+            val uiManager = reactApplicationContext.getNativeModule(UIManagerModule::class.java)
+            uiManager?.addUIBlock { nativeViewHierarchyManager ->
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        liquidGlassOverlays[viewTag]?.let { composeView ->
+                            composeView.setContent {
+                                LiquidGlassOverlay(opts)
+                            }
+                        }
+                        promise.resolve(null)
+                    } catch (e: Exception) {
+                        promise.reject("UPDATE_ERROR", "Failed to update LiquidGlass effect: ${e.message}", e)
                     }
-                    if (options.hasKey("saturation")) {
-                        liquidGlass.saturation = options.getDouble("saturation").toFloat()
-                    }
-                    if (options.hasKey("brightness")) {
-                        liquidGlass.brightness = options.getDouble("brightness").toFloat()
-                    }
-                    if (options.hasKey("noise")) {
-                        liquidGlass.noise = options.getDouble("noise").toFloat()
-                    }
-                    if (options.hasKey("turbulence")) {
-                        liquidGlass.turbulence = options.getDouble("turbulence").toFloat()
-                    }
-                    if (options.hasKey("distortion")) {
-                        liquidGlass.distortion = options.getDouble("distortion").toFloat()
-                    }
-                    
-                    promise.resolve(null)
-                } catch (e: Exception) {
-                    promise.reject("UPDATE_ERROR", "Failed to update LiquidGlass effect: ${e.message}", e)
                 }
             }
         } catch (e: Exception) {
             promise.reject("ERROR", "Error updating LiquidGlass effect: ${e.message}", e)
         }
-        */
+    }
+
+    private fun parseOptions(options: ReadableMap?): LiquidGlassOptions {
+        return LiquidGlassOptions(
+            blurRadius = options?.getDouble("blurRadius")?.toFloat() ?: 16f,
+            saturation = options?.getDouble("saturation")?.toFloat() ?: 1.0f,
+            brightness = options?.getDouble("brightness")?.toFloat() ?: 1.0f,
+            lensRadius = options?.getDouble("lensRadius")?.toFloat() ?: 16f,
+            lensIntensity = options?.getDouble("lensIntensity")?.toFloat() ?: 32f,
+            surfaceAlpha = options?.getDouble("surfaceAlpha")?.toFloat() ?: 0.3f
+        )
+    }
+
+    @Composable
+    private fun LiquidGlassOverlay(options: LiquidGlassOptions) {
+        val backdrop = rememberLayerBackdrop {
+            drawContent()
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    effects = {
+                        vibrancy()
+                        blur(options.blurRadius)
+                        lens(options.lensRadius, options.lensIntensity)
+                    },
+                    onDrawSurface = {
+                        drawRect(Color.White.copy(alpha = options.surfaceAlpha))
+                    }
+                )
+        )
     }
 
     override fun onCatalystInstanceDestroy() {
         super.onCatalystInstanceDestroy()
-        // TODO: AndroidLiquidGlass 라이브러리를 추가한 후 아래 코드의 주석을 해제하세요
-        // liquidGlassInstances.values.forEach { it.release() }
-        // liquidGlassInstances.clear()
+        liquidGlassOverlays.clear()
+        liquidGlassOptions.clear()
     }
 }
