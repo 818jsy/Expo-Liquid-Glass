@@ -1,0 +1,12 @@
+node_modules/
+# build/ - 빌드된 파일은 GitHub에 포함해야 함
+.expo/
+dist/
+*.log
+.DS_Store
+*.orig
+*.rej
+example/node_modules/
+example/android/
+example/ios/
+example/.expo/

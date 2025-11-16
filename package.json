@@ -1,0 +1,52 @@
+{
+  "name": "expo-liquid-glass",
+  "version": "1.0.0",
+  "description": "Expo wrapper for AndroidLiquidGlass Kotlin library",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./LiquidGlassView": {
+      "types": "./build/LiquidGlassView.d.ts",
+      "default": "./build/LiquidGlassView.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "expo",
+    "react-native",
+    "liquid-glass",
+    "android"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/Expo_LiquidGlass.git"
+  },
+  "peerDependencies": {
+    "expo": ">=49.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.72.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^18.0.0",
+    "react-native": "^0.72.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "android",
+    "build",
+    "src",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ]
+}

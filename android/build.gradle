@@ -1,0 +1,61 @@
+buildscript {
+  ext.kotlinVersion = '1.9.0'
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath("com.android.tools.build:gradle:8.1.0")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+  }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+  namespace "expo.modules.liquidglass"
+  compileSdkVersion 34
+
+  defaultConfig {
+    minSdkVersion 24
+    targetSdkVersion 34
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+
+  kotlinOptions {
+    jvmTarget = '17'
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+  maven { url 'https://www.jitpack.io' }
+}
+
+dependencies {
+  implementation 'com.facebook.react:react-native:+'
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  
+  // Kotlin Coroutines
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+  
+  // AndroidLiquidGlass 라이브러리
+  // TODO: 실제 라이브러리 의존성을 추가하세요
+  // 예시:
+  // implementation 'com.github.Kyant0:AndroidLiquidGlass:1.0.0'
+  // 또는 로컬 모듈인 경우:
+  // implementation project(':androidliquidglass')
+}

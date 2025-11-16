@@ -1,0 +1,11 @@
+example/
+node_modules/
+.git/
+.gitignore
+*.log
+.DS_Store
+*.orig
+*.rej
+android/build/
+android/.gradle/
+
