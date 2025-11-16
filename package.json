@@ -28,7 +28,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/expo_liquid_glass/Expo_LiquidGlass.git"
+    "url": "https://github.com/818jsy/Expo-Liquid-Glass.git"
   },
   "peerDependencies": {
     "expo": ">=49.0.0",
