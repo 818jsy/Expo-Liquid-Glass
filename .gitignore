@@ -1,5 +1,10 @@
 node_modules/
-# build/ - 빌드된 파일은 GitHub에 포함해야 함
+# TypeScript 빌드 결과물은 포함 (npm install 시 자동 빌드됨)
+# build/
+# Android 빌드 결과물은 제외
+android/build/
+android/.gradle/
+android/local.properties
 .expo/
 dist/
 *.log
